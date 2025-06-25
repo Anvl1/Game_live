@@ -117,6 +117,8 @@ int main()
     int generation = 0;
     while (true) 
     {
+        std::system("cls");// Очищаем консоль
+
         cout << "Поколение: " << generation << endl;
         universe.display();
         int aliveCount = universe.countAliveCells();
@@ -130,9 +132,11 @@ int main()
 
         universe.update();
         generation++;
-        
-        if (generation > 100)  // Ограничение по поколениям
-        {
+
+        Sleep(1000); // Задержка на 1 секунду       
+
+        if (generation > 100)// Ограничение по поколениям
+        { 
             cout << "Игра завершена: достигнуто максимальное количество поколений." << endl;
             break;
         }
