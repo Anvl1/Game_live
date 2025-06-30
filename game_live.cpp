@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <Windows.h>
+#include <set>
 
 using namespace std;
 
@@ -67,8 +68,12 @@ public:
         }
         grid = newGrid;
     }
+    const vector<vector<bool>>& getGrid() const 
+    {
+        return grid;
+    }
 
-private:
+    private:
     int rows, cols;
     vector<vector<bool>> grid;
 
@@ -88,6 +93,15 @@ private:
     }
 };
 
+bool areGridsEqual(const vector<vector<bool>>& grid1, const vector<vector<bool>>& grid2) 
+{
+    for (size_t i = 0; i < grid1.size(); ++i) 
+    {
+        if (grid1[i] != grid2[i]) return false;
+    }
+    return true;
+}
+
 int main()
 {
     SetConsoleCP(1251);
@@ -95,7 +109,7 @@ int main()
     setlocale(LC_ALL, "Russian");
 
     ifstream inputFile("gen1.txt");
-    if (!inputFile.is_open()) 
+    if (!inputFile.is_open())
     {
         cerr << "Ошибка открытия файла!" << endl;
         return 1;
@@ -107,7 +121,7 @@ int main()
     Universe universe(rows, cols);
     int row, col;
 
-    while (inputFile >> row >> col) 
+    while (inputFile >> row >> col)
     {
         universe.setCell(row, col, true);
     }
@@ -115,7 +129,9 @@ int main()
     inputFile.close();
 
     int generation = 0;
-    while (true) 
+    vector<vector<vector<bool>>> previousStates; // Вектор для хранения предыдущих состояний
+
+    while (true)
     {
         std::system("cls");// Очищаем консоль
 
@@ -124,28 +140,34 @@ int main()
         int aliveCount = universe.countAliveCells();
         cout << "Количество живых клеток: " << aliveCount << endl;
 
-        if (aliveCount == 0) 
+        if (aliveCount == 0)
         {
             cout << "Игра завершена: все клетки мертвы." << endl;
             break;
         }
 
+        const auto& currentGrid = universe.getGrid(); // Получаем текущее состояние
+
+        // Проверяем на стагнацию
+        for (const auto& state : previousStates)
+        {
+            if (areGridsEqual(currentGrid, state))
+            {
+                cout << "Игра завершена: достигнуто состояние стагнации." << endl;
+                return 0; // Состояние уже встречалось
+            }
+        }
+        previousStates.push_back(currentGrid); // Сохраняем текущее состояние
         universe.update();
         generation++;
 
-        Sleep(1000); // Задержка на 1 секунду       
+        Sleep(1000); // Задержка на 1 секунду
 
         if (generation > 100)// Ограничение по поколениям
-        { 
+        {
             cout << "Игра завершена: достигнуто максимальное количество поколений." << endl;
             break;
         }
     }
-
-    cout << "Конечное состояние:" << endl;
-    universe.display();
-    cout << "Поколение: " << generation << endl;
-    cout << "Количество живых клеток: " << universe.countAliveCells() << endl;
-
     return 0;
 }
